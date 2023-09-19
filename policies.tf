@@ -1,5 +1,8 @@
 resource "aws_iam_role" "ecs_execution_role" {
-  name = "ecs-execution-role"
+  for_each = local.services
+
+  name = "${each.value.task_definition.family_name}-execution-role"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -15,27 +18,49 @@ resource "aws_iam_role" "ecs_execution_role" {
 }
 
 resource "aws_iam_policy" "ecs_task_execution_policy" {
-  name = "ecs-task-execution-policy"
+  for_each = local.services
+
+  name = "${each.value.task_definition.family_name}-execution-policy"
+
   policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
       {
         "Effect" : "Allow",
         "Action" : [
-          "ecr:GetAuthorizationToken",
+          "ecr:GetAuthorizationToken"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage",
+        ],
+        "Resource" : [
+          for container in each.value.task_definition.container_definitions : "arn:aws:ecr:${var.aws_region}:${var.account_id}:repository/${container.repository_name}"
+        ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        "Resource" : "*"
+        "Resource" : [
+          for container in each.value.task_definition.container_definitions : "arn:aws:logs:${var.aws_region}:${var.account_id}:log-group:/ecs/${container.name}:*"
+        ]
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy_attachment" {
-  role       = aws_iam_role.ecs_execution_role.name
-  policy_arn = aws_iam_policy.ecs_task_execution_policy.arn
+  for_each = local.services
+
+  role       = aws_iam_role.ecs_execution_role[each.key].name
+  policy_arn = aws_iam_policy.ecs_task_execution_policy[each.key].arn
 }
