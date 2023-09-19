@@ -41,7 +41,7 @@ resource "aws_route" "public_route" {
 }
 
 resource "aws_security_group" "ecs" {
-  name        = "test-group"
+  name        = var.security_group_name
   description = "Allow all inboud and outbound traffic"
   vpc_id      = aws_vpc.example_vpc.id
   depends_on  = [aws_vpc.example_vpc]

@@ -33,6 +33,11 @@ variable "private_subnet_cidr_blocks" {
   type        = list(string)
 }
 
+variable "security_group_name" {
+  description = "Name of the security group"
+  type        = string
+}
+
 variable "clusters" {
   description = "A list of ecs clusters to create with configurations"
   type = list(object({
