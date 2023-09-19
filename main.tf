@@ -4,9 +4,9 @@ locals {
       for service in cluster.services : [
         for container in service.task_definition.container_definitions : [
           {
-            name = container.repository_name
+            name            = container.repository_name
             dockerfile_path = container.dockerfile_location
-            container_name = container.name
+            container_name  = container.name
           }
         ]
       ]
@@ -16,10 +16,10 @@ locals {
   service_list = flatten([
     for cluster in var.clusters : [
       for service in cluster.services : [{
-        name = service.name
+        name            = service.name
         task_definition = service.task_definition
-        cluster = cluster.name
-        desired_count = service.desired_count
+        cluster         = cluster.name
+        desired_count   = service.desired_count
       }]
     ]
   ])
@@ -45,7 +45,7 @@ resource "aws_ecr_repository" "repository" {
 
 resource "null_resource" "build_docker_image" {
   for_each = local.ecr_repositories
-  
+
   triggers = {
     always_run = "${timestamp()}"
   }
@@ -93,17 +93,18 @@ resource "aws_ecs_task_definition" "task-def" {
   family = each.value.task_definition.family_name
   container_definitions = jsonencode([
     for container in each.value.task_definition.container_definitions : {
-      name = container.name
-      image = "${aws_ecr_repository.repository[container.repository_name].repository_url}:latest"
+      name         = container.name
+      image        = "${aws_ecr_repository.repository[container.repository_name].repository_url}:latest"
       portMappings = container.portMappings
-      environment = container.environment
-      secrets = container.secrets
+      environment  = container.environment
+      secrets      = container.secrets
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group = container.log_group_name
-          awslogs-region = var.aws_region
+          awslogs-group         = "/ecs/${container.name}"
+          awslogs-region        = var.aws_region
           awslogs-stream-prefix = "ecs"
+          awslogs-create-group  = "true"
         }
       }
     }
@@ -114,7 +115,7 @@ resource "aws_ecs_task_definition" "task-def" {
 
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+  execution_role_arn       = aws_iam_role.ecs_execution_role[each.key].arn
 }
 
 resource "aws_ecs_cluster" "cluster" {
@@ -126,16 +127,16 @@ resource "aws_ecs_cluster" "cluster" {
 resource "aws_ecs_service" "ecs_service" {
   for_each = local.services
 
-  name           = each.value.name
-  cluster = aws_ecs_cluster.cluster[each.value.cluster].id
+  name            = each.value.name
+  cluster         = aws_ecs_cluster.cluster[each.value.cluster].id
   task_definition = aws_ecs_task_definition.task-def[each.value.name].arn
-  desired_count = each.value.desired_count
+  desired_count   = each.value.desired_count
 
   force_new_deployment = true
   launch_type          = "FARGATE"
   network_configuration {
-    security_groups  = [aws_security_group.test-group.id]
-    subnets          = aws_subnet.private_subnet_1.*.id
+    security_groups  = [aws_security_group.ecs.id]
+    subnets          = aws_subnet.private_subnet.*.id
     assign_public_ip = true
   }
 }
