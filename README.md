@@ -6,7 +6,7 @@ This module creates the full ECS Fargate setup, including the push of the docker
 
 ```hcl
 module "ecs-fargate" {
-  source                = "github.com/inaciogu/ecs-fargate-deployment"
+  source                = "github.com/inaciogu/terraform-aws-ecs-fargate-deployment"
   aws_access_key_id     = "test"
   aws_secret_access_key = "test"
   aws_region            = "us-east-1"
