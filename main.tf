@@ -4,11 +4,12 @@ locals {
       for service in cluster.services : [
         for container in service.task_definition.container_definitions : [
           {
-            name            = container.repository_name
-            dockerfile_path = container.dockerfile_location
-            container_name  = container.name
+            name                    = container.repository_name
+            dockerfile_path         = container.dockerfile_location
+            container_name          = container.name
+            create_repository_setup = container.create_repository_setup
           }
-        ]
+        ] if container.create_repository_setup
       ]
     ]
   ])
@@ -94,7 +95,7 @@ resource "aws_ecs_task_definition" "task-def" {
   container_definitions = jsonencode([
     for container in each.value.task_definition.container_definitions : {
       name         = container.name
-      image        = "${aws_ecr_repository.repository[container.repository_name].repository_url}:latest"
+      image        = "${var.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${container.repository_name}:latest"
       portMappings = container.portMappings
       environment  = container.environment
       secrets      = container.secrets

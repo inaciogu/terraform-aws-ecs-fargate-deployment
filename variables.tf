@@ -48,8 +48,9 @@ variable "clusters" {
         family_name = string # Name of the task definition family
         container_definitions = list(object({
           name                = string # Name of the container
-          repository_name     = string # Name of ECR repository to used
-          dockerfile_location = string # path to the Dockerfile
+          create_repository_setup = bool # Whether to create the repository
+          repository_name     = string # Name of ECR repository to be used
+          dockerfile_location = optional(string) # path to the Dockerfile
           portMappings = optional(list(object({
             containerPort = number # Port of the container
             hostPort      = number # Port of the host
