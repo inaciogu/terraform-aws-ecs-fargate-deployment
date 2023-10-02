@@ -140,32 +140,3 @@ resource "aws_ecs_service" "ecs_service" {
     assign_public_ip = true
   }
 }
-
-resource "aws_appautoscaling_target" "ecs_target" {
-  max_capacity       = 10 # Substitua com a capacidade máxima desejada
-  min_capacity       = 1  # Substitua com a capacidade mínima desejada
-  resource_id        = "service/${aws_ecs_cluster.cluster["example-cluster"].name}/${aws_ecs_service.ecs_service["example-service"].name}"
-  scalable_dimension = "ecs:service:DesiredCount"
-  service_namespace  = "ecs"
-}
-
-resource "aws_appautoscaling_policy" "queue_messages_policy" {
-  name        = "queue_messages_policy"
-  policy_type = "TargetTrackingScaling"
-  target_tracking_scaling_policy_configuration {
-    customized_metric_specification {
-      dimensions {
-        name  = "QueueName"
-        value = "candidates_queue"
-      }
-      metric_name = "ApproximateNumberOfMessagesVisible"
-      namespace   = "AWS/SQS"
-      statistic   = "Average"
-    }
-    target_value = 2
-  }
-
-  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
-}
