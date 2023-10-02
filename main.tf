@@ -17,10 +17,12 @@ locals {
   service_list = flatten([
     for cluster in var.clusters : [
       for service in cluster.services : [{
-        name            = service.name
-        task_definition = service.task_definition
-        cluster         = cluster.name
-        desired_count   = service.desired_count
+        name                       = service.name
+        task_definition            = service.task_definition
+        cluster                    = cluster.name
+        desired_count              = service.desired_count
+        enable_queue_auto_scalling = service.enable_queue_auto_scaling
+        auto_scaling               = service.auto_scaling
       }]
     ]
   ])
@@ -31,6 +33,10 @@ locals {
 
   services = {
     for service in local.service_list : service.name => service
+  }
+
+  services_to_scale = {
+    for service in local.service_list : service.name => service if service.enable_queue_auto_scalling
   }
 
   ecr_repositories = {
@@ -139,5 +145,63 @@ resource "aws_ecs_service" "ecs_service" {
     security_groups  = [aws_security_group.ecs.id]
     subnets          = aws_subnet.private_subnet.*.id
     assign_public_ip = true
+  }
+}
+
+resource "aws_appautoscaling_target" "ecs_target" {
+  for_each = local.services_to_scale
+
+  max_capacity       = each.value.auto_scaling.max_capacity
+  min_capacity       = each.value.auto_scaling.min_capacity
+  resource_id        = "service/${each.value.cluster}/${each.key}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "ecs_scale_up_policy" {
+  for_each = local.services_to_scale
+
+  name        = "${each.key}_sqs_scale_up_policy"
+  policy_type = "StepScaling"
+  step_scaling_policy_configuration {
+    adjustment_type         = "ExactCapacity"
+    metric_aggregation_type = "Average"
+
+    dynamic "step_adjustment" {
+      for_each = each.value.auto_scaling.steps
+
+      content {
+        metric_interval_lower_bound = step_adjustment.value.lower_bound
+        metric_interval_upper_bound = step_adjustment.value.upper_bound
+        scaling_adjustment          = step_adjustment.value.change
+      }
+    }
+  }
+
+  resource_id        = aws_appautoscaling_target.ecs_target[each.key].resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target[each.key].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target[each.key].service_namespace
+}
+
+resource "aws_cloudwatch_metric_alarm" "sqs_scale_out" {
+  for_each = local.services_to_scale
+
+  alarm_name = "${each.key}-SQS-ScaleOut"
+
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "ApproximateNumberOfMessagesVisible"
+  namespace                 = "AWS/SQS"
+  period                    = "60"
+  threshold                 = "1"
+  statistic                 = "Sum"
+  alarm_description         = "scale up ${each.key} service"
+  insufficient_data_actions = []
+  alarm_actions = [
+    aws_appautoscaling_policy.ecs_scale_up_policy[each.key].arn
+  ]
+
+  dimensions = {
+    QueueName = each.value.auto_scaling.queue_name
   }
 }
