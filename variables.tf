@@ -1,11 +1,13 @@
 variable "aws_access_key_id" {
   description = "value of AWS_ACCESS_KEY_ID"
   type        = string
+  default     = ""
 }
 
 variable "aws_secret_access_key" {
   description = "value of AWS_SECRET_ACCESS_KEY"
   type        = string
+  default     = ""
 }
 
 variable "aws_region" {
@@ -43,14 +45,25 @@ variable "clusters" {
   type = list(object({
     name = string # Name of the cluster
     services = list(object({
-      name = string # Name of the service
+      name                      = string # Name of the service
+      enable_queue_auto_scaling = bool   # Whether to enable queue auto scaling
+      auto_scaling = optional(object({
+        min_capacity = number # Minimum number of tasks
+        max_capacity = number # Maximum number of tasks
+        queue_name   = string # Name of the queue
+        steps = list(object({
+          lower_bound = number           # Lower bound of the step
+          upper_bound = optional(number) # Upper bound of the step
+          change      = number           # Desired count to be changed
+        }))
+      }))
       task_definition = object({
         family_name = string # Name of the task definition family
         container_definitions = list(object({
-          name                = string # Name of the container
-          create_repository_setup = bool # Whether to create the repository
-          repository_name     = string # Name of ECR repository to be used
-          dockerfile_location = optional(string) # path to the Dockerfile
+          name                    = string           # Name of the container
+          create_repository_setup = bool             # Whether to create the repository
+          repository_name         = string           # Name of ECR repository to be used
+          dockerfile_location     = optional(string) # path to the Dockerfile
           portMappings = optional(list(object({
             containerPort = number # Port of the container
             hostPort      = number # Port of the host
