@@ -60,7 +60,7 @@ resource "aws_iam_policy" "ecs_task_execution_policy" {
           "secretsmanager:GetSecretValue"
         ],
         "Resource" : [
-          for container in each.value.task_definition.container_definitions : container.secret_arn
+          for container in each.value.task_definition.container_definitions : container.secret_arn != null ? container.secret_arn : "*"
         ]
       }
     ]
