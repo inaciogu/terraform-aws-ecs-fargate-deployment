@@ -53,11 +53,19 @@ resource "aws_iam_policy" "ecs_task_execution_policy" {
         "Resource" : [
           for container in each.value.task_definition.container_definitions : "arn:aws:logs:${var.aws_region}:${var.account_id}:log-group:/ecs/${container.name}:*"
         ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "secretsmanager:GetSecretValue"
+        ],
+        "Resource" : [
+          for container in each.value.task_definition.container_definitions : container.secret_arn
+        ]
       }
     ]
   })
 }
-
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy_attachment" {
   for_each = local.services
 
