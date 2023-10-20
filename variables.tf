@@ -45,8 +45,8 @@ variable "clusters" {
   type = list(object({
     name = string # Name of the cluster
     services = list(object({
-      name                      = string # Name of the service
-      enable_queue_auto_scaling = bool   # Whether to enable queue auto scaling
+      name                      = string         # Name of the service
+      enable_queue_auto_scaling = optional(bool) # Whether to enable queue auto scaling
       auto_scaling = optional(object({
         min_capacity = number # Minimum number of tasks
         max_capacity = number # Maximum number of tasks
@@ -70,9 +70,10 @@ variable "clusters" {
             protocol      = string # Protocol of the port
           })))
           environment = optional(list(object({
-            name  = string # Name of the environment variable
-            value = string # Value of the environment variable
-          })))             # Environment variables
+            name  = string              # Name of the environment variable
+            value = string              # Value of the environment variable
+          })))                          # Environment variables
+          secret_arn = optional(string) # ARN of the secret to get the environment variables
           secrets = optional(list(object({
             name      = string # Name of the secret
             valueFrom = string # ARN of the secret
