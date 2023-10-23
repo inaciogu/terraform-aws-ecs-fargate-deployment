@@ -124,10 +124,6 @@ data "aws_secretsmanager_secret_version" "secrets" {
   secret_id = each.value.secret_arn
 }
 
-output "secrets" {
-  value = local.secrets
-}
-
 resource "aws_ecs_task_definition" "task-def" {
   for_each = local.services
 
