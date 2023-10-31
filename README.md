@@ -50,3 +50,23 @@ module "ecs-fargate" {
 }
 ```
 
+### Secrets Manager integration
+
+If you want to use secrets from Secrets Manager, you can use the **secret_arn** property in the container_definitions. The values stored in the secret will be set as secrets inside the container, and will be available as environment variables.
+
+```hcl
+container_definitions = [
+  {
+    name                = "example-container"
+    repository_name     = "example-repository"
+    dockerfile_location = "."
+    portMappings = [{
+      containerPort = 80
+      hostPort      = 80
+      protocol      = "tcp"
+    }]
+    secret_arn = "arn:aws:secretsmanager:us-east-1:000000000000:secret:example-secret-arn"
+  },
+]
+```
+
