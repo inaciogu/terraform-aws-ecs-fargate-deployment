@@ -23,6 +23,7 @@ locals {
         desired_count              = service.desired_count
         enable_queue_auto_scalling = service.enable_queue_auto_scaling == true
         auto_scaling               = service.auto_scaling
+        network                    = service.network
       }]
     ]
   ])
@@ -176,8 +177,8 @@ resource "aws_ecs_service" "ecs_service" {
   force_new_deployment = true
   launch_type          = "FARGATE"
   network_configuration {
-    security_groups  = [aws_security_group.ecs.id]
-    subnets          = aws_subnet.private_subnet.*.id
+    security_groups  = each.value.network == null ? [aws_security_group.ecs.id] : each.value.network.security_groups
+    subnets          = each.value.network == null ? aws_subnet.private_subnet.*.id : each.value.network.subnets
     assign_public_ip = true
   }
 }

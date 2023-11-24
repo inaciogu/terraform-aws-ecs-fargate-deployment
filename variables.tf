@@ -84,6 +84,10 @@ variable "clusters" {
         memory = number # Memory units
       })
       desired_count = number # Desired number of tasks
+      network = optional(object({
+        security_groups = list(string) # Security groups to be attached
+        subnets         = list(string) # Subnets to be attached
+      }))
     }))
   }))
 }
