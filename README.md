@@ -70,3 +70,28 @@ container_definitions = [
 ]
 ```
 
+### Network
+
+You can use existing subnets and security groups by setting the `network` object inside the `service` or create the vpc configuration from scratch using the variables `vpc_cidr_block`, `public_subnet_cidr_blocks`, `private_subnet_cidr_blocks` and `security_group_name`.
+
+Existing network setup:
+
+```hcl
+services = [{
+  name = "example-service"
+  network = {
+    subnets = ["subnet-00000000000000000", "subnet-00000000000000001"]
+    security_groups = ["sg-00000000000000000"]
+  }
+}]
+```
+
+New network setup:
+
+```hcl
+vpc_cidr_block             = "10.0.0.0/16"
+public_subnet_cidr_blocks  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidr_blocks = ["10.0.3.0/24", "10.0.4.0/24"]
+security_group_name        = "example-security-group"
+```
+**Note:** Currently, the module supports just one vpc creation thats why the vpc variables are not inside the `service` object.
