@@ -55,6 +55,10 @@ locals {
     for cluster in var.clusters : cluster.name => cluster
   }
 
+  clusters_to_create = {
+    for cluster in local.clusters : cluster.name => cluster if cluster.create_cluster == true
+  }
+
   services = {
     for service in local.service_list : service.name => service
   }
@@ -156,7 +160,7 @@ resource "aws_ecs_task_definition" "task-def" {
 }
 
 resource "aws_ecs_cluster" "cluster" {
-  for_each = local.clusters
+  for_each = local.clusters_to_create
 
   name = each.value.name
 }
@@ -165,7 +169,7 @@ resource "aws_ecs_service" "ecs_service" {
   for_each = local.services
 
   name            = each.value.name
-  cluster         = aws_ecs_cluster.cluster[each.value.cluster].id
+  cluster         = "arn:aws:ecs:${var.aws_region}:${var.account_id}:cluster/${each.value.cluster}"
   task_definition = aws_ecs_task_definition.task-def[each.value.name].arn
   desired_count   = each.value.desired_count
 

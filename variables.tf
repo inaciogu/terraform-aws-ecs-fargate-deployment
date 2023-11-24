@@ -43,7 +43,8 @@ variable "security_group_name" {
 variable "clusters" {
   description = "A list of ecs clusters to create with configurations"
   type = list(object({
-    name = string # Name of the cluster
+    name           = string         # Name of the cluster
+    create_cluster = optional(bool) # Whether to create the cluster
     services = list(object({
       name                      = string         # Name of the service
       enable_queue_auto_scaling = optional(bool) # Whether to enable queue auto scaling
@@ -61,7 +62,7 @@ variable "clusters" {
         family_name = string # Name of the task definition family
         container_definitions = list(object({
           name                    = string           # Name of the container
-          create_repository_setup = bool             # Whether to create the repository
+          create_repository_setup = optional(bool)   # Whether to create the repository
           repository_name         = string           # Name of ECR repository to be used
           dockerfile_location     = optional(string) # path to the Dockerfile
           portMappings = optional(list(object({
