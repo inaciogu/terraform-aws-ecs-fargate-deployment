@@ -65,7 +65,7 @@ container_definitions = [
       hostPort      = 80
       protocol      = "tcp"
     }]
-    secret_arn = "arn:aws:secretsmanager:us-east-1:000000000000:secret:example-secret-arn"
+    secret_manager = "example-secret-name"
   },
 ]
 ```

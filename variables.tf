@@ -23,21 +23,25 @@ variable "account_id" {
 variable "vpc_cidr_block" {
   description = "CIDR block of the VPC"
   type        = string
+  default     = null
 }
 
 variable "public_subnet_cidr_blocks" {
   description = "CIDR blocks of the public subnets"
   type        = list(string)
+  default     = []
 }
 
 variable "private_subnet_cidr_blocks" {
   description = "CIDR blocks of the private subnets"
   type        = list(string)
+  default     = []
 }
 
 variable "security_group_name" {
   description = "Name of the security group"
   type        = string
+  default     = null
 }
 
 variable "clusters" {
@@ -71,10 +75,10 @@ variable "clusters" {
             protocol      = string # Protocol of the port
           })))
           environment = optional(list(object({
-            name  = string              # Name of the environment variable
-            value = string              # Value of the environment variable
-          })))                          # Environment variables
-          secret_arn = optional(string) # ARN of the secret to get the environment variables
+            name  = string                  # Name of the environment variable
+            value = string                  # Value of the environment variable
+          })))                              # Environment variables
+          secret_manager = optional(string) # ARN of the secret to get the environment variables
           secrets = optional(list(object({
             name      = string # Name of the secret
             valueFrom = string # ARN of the secret
