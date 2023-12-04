@@ -2,6 +2,11 @@ resource "aws_vpc" "example_vpc" {
   count = var.vpc_cidr_block != null ? 1 : 0
 
   cidr_block = var.vpc_cidr_block
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 data "aws_availability_zones" "available" {
@@ -15,6 +20,11 @@ resource "aws_subnet" "public_subnet" {
   cidr_block              = var.public_subnet_cidr_blocks[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_subnet" "private_subnet" {
@@ -23,11 +33,21 @@ resource "aws_subnet" "private_subnet" {
   vpc_id            = aws_vpc.example_vpc[0].id
   cidr_block        = var.private_subnet_cidr_blocks[count.index]
   availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_internet_gateway" "igw" {
   count  = length(var.public_subnet_cidr_blocks) > 0 ? 1 : 0
   vpc_id = aws_vpc.example_vpc[0].id
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_route_table_association" "public_association" {
@@ -64,5 +84,10 @@ resource "aws_security_group" "ecs" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
   }
 }

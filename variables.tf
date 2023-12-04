@@ -44,6 +44,12 @@ variable "security_group_name" {
   default     = null
 }
 
+variable "tags" {
+  description = "A map of tags to add to all resources"
+  type        = map(string)
+  default     = {}
+}
+
 variable "clusters" {
   description = "A list of ecs clusters to create with configurations"
   type = list(object({

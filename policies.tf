@@ -15,6 +15,11 @@ resource "aws_iam_role" "ecs_execution_role" {
       }
     ]
   })
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_iam_policy" "ecs_task_execution_policy" {
@@ -65,6 +70,11 @@ resource "aws_iam_policy" "ecs_task_execution_policy" {
       }
     ]
   })
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy_attachment" {
   for_each = local.services

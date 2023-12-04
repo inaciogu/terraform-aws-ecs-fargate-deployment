@@ -2,6 +2,11 @@ resource "aws_ecr_repository" "repository" {
   for_each = local.ecr_repositories
 
   name = each.value.name
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "null_resource" "build_docker_image" {
@@ -77,12 +82,22 @@ resource "aws_ecs_task_definition" "task-def" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecs_execution_role[each.key].arn
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_ecs_cluster" "cluster" {
   for_each = local.clusters_to_create
 
   name = each.value.name
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_ecs_service" "ecs_service" {
@@ -100,6 +115,11 @@ resource "aws_ecs_service" "ecs_service" {
     subnets          = each.value.network == null ? aws_subnet.private_subnet.*.id : each.value.network.subnets
     assign_public_ip = true
   }
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_appautoscaling_target" "ecs_target" {
@@ -110,6 +130,11 @@ resource "aws_appautoscaling_target" "ecs_target" {
   resource_id        = "service/${each.value.cluster}/${each.key}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_appautoscaling_policy" "ecs_scale_up_policy" {
@@ -157,5 +182,10 @@ resource "aws_cloudwatch_metric_alarm" "sqs_scale_out" {
 
   dimensions = {
     QueueName = each.value.auto_scaling.queue_name
+  }
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
