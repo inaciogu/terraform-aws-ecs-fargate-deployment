@@ -95,8 +95,8 @@ variable "clusters" {
       })
       desired_count = number # Desired number of tasks
       network = optional(object({
-        security_groups = list(string) # Security groups to be attached
-        subnets         = list(string) # Subnets to be attached
+        security_groups_tag = map(string) # Security groups to be attached
+        subnets_tag         = map(string) # Subnets to be attached
       }))
     }))
   }))
