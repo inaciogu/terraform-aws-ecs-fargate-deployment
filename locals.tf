@@ -72,4 +72,8 @@ locals {
   ecr_repositories = {
     for repository in local.repositories_list : repository.name => repository
   }
+
+  networks = {
+    for service in local.service_list : service.name => service.network if service.network != null
+  }
 }
