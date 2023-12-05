@@ -15,9 +15,9 @@ output "secrets_data_source" {
 }
 
 output "security_groups" {
-	value = data.aws_security_groups.services
+  value = data.aws_security_groups.services
 }
 
 output "subnets" {
-	value = data.aws_subnets.services
+  value = data.aws_subnets.services
 }

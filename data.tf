@@ -9,17 +9,17 @@ data "aws_secretsmanager_secret_version" "secrets" {
 }
 
 data "aws_security_groups" "services" {
-	for_each = local.services
-	filter {
-		name   = "tag:${keys(each.value.network.security_groups_tag)[0]}"
-		values = [values(each.value.network.security_groups_tag)[0]]
-	}
+  for_each = local.services
+  filter {
+    name   = "tag:${each.value.network.security_groups_tag.key}"
+    values = each.value.network.security_groups_tag.values
+  }
 }
 
 data "aws_subnets" "services" {
-	for_each = local.services
+  for_each = local.services
   filter {
-    name   = "tag:${keys(each.value.network.subnets_tag)[0]}"
-    values = [values(each.value.network.subnets_tag)[0]]
+    name   = "tag:${each.value.network.subnets_tag.key}"
+    values = each.value.network.subnets_tag.values
   }
 }

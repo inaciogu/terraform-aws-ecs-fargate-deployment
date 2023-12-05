@@ -81,10 +81,12 @@ services = [{
   name = "example-service"
   network = {
     subnets_tags = {
-			"Name" = "example-subnet"
+			key = "project"
+			value= "example-subnet"
 		}
     security_groups_tags = {
-			"Name" = "example-security-group"
+			key = "project"
+			value = "example-security-group"
 		}
   }
 }]
