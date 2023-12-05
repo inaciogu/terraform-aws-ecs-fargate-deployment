@@ -111,8 +111,8 @@ resource "aws_ecs_service" "ecs_service" {
   force_new_deployment = true
   launch_type          = "FARGATE"
   network_configuration {
-    security_groups  = each.value.network == null ? [aws_security_group.ecs[0].id] : each.value.network.security_groups
-    subnets          = each.value.network == null ? aws_subnet.private_subnet.*.id : each.value.network.subnets
+    security_groups  = each.value.network == null ? [aws_security_group.ecs[0].id] : data.aws_security_groups.services[each.key].ids
+    subnets          = each.value.network == null ? aws_subnet.private_subnet.*.id : data.aws_subnets.services[each.key].ids
     assign_public_ip = true
   }
 

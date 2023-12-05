@@ -52,7 +52,7 @@ module "ecs-fargate" {
 
 ### Secrets Manager integration
 
-If you want to use secrets from Secrets Manager, you can use the **secret_arn** property in the container_definitions. The values stored in the secret will be set as secrets inside the container, and will be available as environment variables.
+If you want to use secrets from Secrets Manager, you can use the **secret_manager** property in the container_definitions. The values stored in the secret will be set as secrets inside the container, and will be available as environment variables.
 
 ```hcl
 container_definitions = [
@@ -80,8 +80,14 @@ Existing network setup:
 services = [{
   name = "example-service"
   network = {
-    subnets = ["subnet-00000000000000000", "subnet-00000000000000001"]
-    security_groups = ["sg-00000000000000000"]
+    subnets_tags = {
+			key = "project"
+			value= "example-subnet"
+		}
+    security_groups_tags = {
+			key = "project"
+			value = "example-security-group"
+		}
   }
 }]
 ```
